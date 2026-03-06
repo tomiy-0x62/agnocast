@@ -9,6 +9,7 @@
 #include "agnocast/node/agnocast_context.hpp"
 #include "agnocast/node/node_interfaces/node_base.hpp"
 #include "agnocast/node/node_interfaces/node_clock.hpp"
+#include "agnocast/node/node_interfaces/node_graph.hpp"
 #include "agnocast/node/node_interfaces/node_logging.hpp"
 #include "agnocast/node/node_interfaces/node_parameters.hpp"
 #include "agnocast/node/node_interfaces/node_services.hpp"
@@ -453,6 +454,7 @@ private:
   rclcpp::Logger logger_{rclcpp::get_logger("agnocast_node")};
   node_interfaces::NodeBase::SharedPtr node_base_;
   node_interfaces::NodeParameters::SharedPtr node_parameters_;
+  node_interfaces::NodeGraph::SharedPtr node_graph_;
   node_interfaces::NodeTopics::SharedPtr node_topics_;
   node_interfaces::NodeClock::SharedPtr node_clock_;
   node_interfaces::NodeTimeSource::SharedPtr node_time_source_;

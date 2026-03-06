@@ -36,6 +36,8 @@ Node::Node(
   node_parameters_ = std::make_shared<node_interfaces::NodeParameters>(
     node_base_, options.parameter_overrides(), local_args_.get());
 
+  node_graph_ = std::make_shared<node_interfaces::NodeGraph>(node_base_);
+
   node_clock_ = std::make_shared<node_interfaces::NodeClock>(RCL_ROS_TIME);
 
   node_time_source_ = std::make_shared<node_interfaces::NodeTimeSource>(node_clock_, this);
