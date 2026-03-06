@@ -170,13 +170,42 @@ Each interface is accessible via getter methods such as `get_node_base_interface
 
 ---
 
-### 2.8 Other Interfaces
+### 2.8 NodeGraphInterface
+
+**Purpose**: Graph
+
+**Important**: `agnocast::node_interfaces::NodeGraph` **inherits from** `rclcpp::node_interfaces::NodeGraphInterface`.
+
+| Feature | agnocast::Node | Support Level | Planned | Notes |
+|---------|----------------|---------------|---------|-------|
+| `get_topic_names_and_types()` | ✗ | **Throws Exception** | ? | |
+| `get_service_names_and_types()` | ✗ | **Throws Exception** | ? | |
+| `get_service_names_and_types_by_node()` | ✗ | **Throws Exception** | ? | |
+| `get_client_names_and_types_by_node()` | ✗ | **Throws Exception** | ? | |
+| `get_publisher_names_and_types_by_node()` | ✗ | **Throws Exception** | ? | |
+| `get_subscriber_names_and_types_by_node()` | ✗ | **Throws Exception** | ? | |
+| `get_node_names()` | ✗ | **Throws Exception** | ? | |
+| `get_node_names_with_enclaves()` | ✗ | **Throws Exception** | ? | |
+| `get_node_names_and_namespaces()` | ✗ | **Throws Exception** | ? | |
+| `count_publishers()` | ✗ | **Throws Exception** | ? | |
+| `count_subscribers()` | ✗ | **Throws Exception** | ? | |
+| `get_graph_guard_condition()` | ✗ | **Throws Exception** | ? | |
+| `notify_graph_change()` | ✗ | **Throws Exception** | ? | |
+| `notify_shutdown()` | ✗ | **Throws Exception** | ? | |
+| `get_graph_event()` | ✗ | **Throws Exception** | ? | |
+| `wait_for_graph_change()` | ✗ | **Throws Exception** | ? | |
+| `count_graph_users()` | ✗ | **Throws Exception** | ? | |
+| `get_publishers_info_by_topic()` | ✗ | **Throws Exception** | ? | |
+| `get_subscriptions_info_by_topic()` | ✗ | **Throws Exception** | ? | |
+
+---
+
+### 2.9 Other Interfaces
 
 The following interfaces are all **unsupported**. agnocast::Node does not implement these interfaces.
 
 | Interface | Support Status | Planned | Notes |
 |-----------|---------------|---------|-------|
-| NodeGraphInterface | Unsupported | No | DDS is not used |
 | NodeTimersInterface | Unsupported | Yes | |
 | NodeWaitablesInterface | Unsupported | TBD | |
 
