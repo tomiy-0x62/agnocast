@@ -101,6 +101,13 @@ public:
 
   // Non-const to align with rclcpp::Node API
   // cppcheck-suppress functionConst
+  rclcpp::node_interfaces::NodeGraphInterface::SharedPtr get_node_graph_interface()
+  {
+    return node_graph_;
+  }
+
+  // Non-const to align with rclcpp::Node API
+  // cppcheck-suppress functionConst
   rclcpp::node_interfaces::NodeTimeSourceInterface::SharedPtr get_node_time_source_interface()
   {
     return node_time_source_;
