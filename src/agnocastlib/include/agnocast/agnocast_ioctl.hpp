@@ -46,6 +46,12 @@ struct ioctl_get_version_args
   char ret_version[VERSION_BUFFER_LEN];
 };
 
+struct ioctl_get_node_names_args
+{
+  char * buffer;
+  int count;
+};
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 union ioctl_add_process_args {
@@ -345,5 +351,6 @@ struct ioctl_set_ros2_publisher_num_args
 #define AGNOCAST_SET_ROS2_SUBSCRIBER_NUM_CMD \
   _IOW(0xA6, 25, struct ioctl_set_ros2_subscriber_num_args)
 #define AGNOCAST_SET_ROS2_PUBLISHER_NUM_CMD _IOW(0xA6, 26, struct ioctl_set_ros2_publisher_num_args)
+#define AGNOCAST_GET_NODE_NAMES_CMD _IOW(0xA6, 27, struct ioctl_get_node_names_args)
 
 }  // namespace agnocast

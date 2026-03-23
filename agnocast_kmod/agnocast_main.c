@@ -759,6 +759,31 @@ int agnocast_ioctl_get_version(struct ioctl_get_version_args * ioctl_ret)
   return 0;
 }
 
+int agnocast_ioctl_get_node_names(struct ioctl_get_node_names * ioctl_ret)
+{
+  const char * dummy_data[] = {"hoge", "piyo"};
+  int num_nodes = 2;
+  int i;
+  char __user * current_user_ptr;
+
+  if (copy_from_user(&k_args, ioctl_ret, sizeof(k_args))) return -EFAULT;
+
+  current_user_ptr = k_args.buffer;
+
+  for (i = 0; i < num_nodes; i++) {
+    size_t len = strlen(dummy_data[i]) + 1;  // +1 for '\0'
+
+    if (copy_to_user(current_user_ptr, dummy_data[i], len)) return -EFAULT;
+
+    current_user_ptr += len;
+  }
+
+  k_args.count = num_nodes;
+  if (copy_to_user(ioctl_ret, &k_args, sizeof(k_args))) return -EFAULT;
+
+  return 0;
+}
+
 int agnocast_ioctl_add_process(
   const pid_t pid, const struct ipc_namespace * ipc_ns, union ioctl_add_process_args * ioctl_ret)
 {

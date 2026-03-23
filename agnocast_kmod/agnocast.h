@@ -33,6 +33,12 @@ struct ioctl_get_version_args
   char ret_version[VERSION_BUFFER_LEN];
 };
 
+struct ioctl_get_node_names_args
+{
+  char * buffer;
+  int count;
+};
+
 union ioctl_add_process_args {
   struct
   {
@@ -273,6 +279,7 @@ struct ioctl_set_ros2_publisher_num_args
 #define AGNOCAST_SET_ROS2_SUBSCRIBER_NUM_CMD \
   _IOW(0xA6, 25, struct ioctl_set_ros2_subscriber_num_args)
 #define AGNOCAST_SET_ROS2_PUBLISHER_NUM_CMD _IOW(0xA6, 26, struct ioctl_set_ros2_publisher_num_args)
+#define AGNOCAST_GET_NODE_NAMES_CMD _IOR(0xA6, 27, struct ioctl_get_node_names_args)
 
 // ================================================
 // ros2cli ioctls
@@ -411,6 +418,8 @@ int agnocast_ioctl_remove_bridge(
   const char * topic_name, const pid_t pid, bool is_r2a, const struct ipc_namespace * ipc_ns);
 
 int agnocast_ioctl_get_version(struct ioctl_get_version_args * ioctl_ret);
+
+int agnocast_ioctl_get_node_names(struct ioctl_get_node_names_args * ioctl_ret);
 
 int agnocast_ioctl_get_node_subscriber_topics(
   const struct ipc_namespace * ipc_ns, const char * node_name,
