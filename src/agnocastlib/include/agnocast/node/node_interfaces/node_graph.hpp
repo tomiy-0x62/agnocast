@@ -1,15 +1,26 @@
 #pragma once
 
+#include "agnocast/agnocast_ioctl.hpp"
 #include "agnocast/node/node_interfaces/node_base.hpp"
 #include "rclcpp/event.hpp"
 #include "rclcpp/node_interfaces/node_base_interface.hpp"
 #include "rclcpp/node_interfaces/node_graph_interface.hpp"
+#include "rclcpp/rclcpp.hpp"
+
+#include <sys/ioctl.h>
+#include <unistd.h>
 
 #include <map>
 #include <memory>
 #include <vector>
 
-namespace agnocast::node_interfaces
+namespace agnocast
+{
+
+extern int agnocast_fd;
+extern rclcpp::Logger logger;
+
+namespace node_interfaces
 {
 
 class NodeGraph : public rclcpp::node_interfaces::NodeGraphInterface
@@ -22,6 +33,9 @@ public:
 
   virtual ~NodeGraph() = default;
 
+  std::vector<std::string> get_node_names() const override;
+  size_t count_publishers(const std::string & topic_name) const override;
+  size_t count_subscribers(const std::string & topic_name) const override;
   // ===== Not supported methods (throw runtime_error) =====
   std::map<std::string, std::vector<std::string>> get_topic_names_and_types(
     bool no_demangle = false) const override;
@@ -36,12 +50,9 @@ public:
   std::map<std::string, std::vector<std::string>> get_subscriber_names_and_types_by_node(
     const std::string & node_name, const std::string & namespace_,
     bool no_demangle = false) const override;
-  std::vector<std::string> get_node_names() const override;
   std::vector<std::tuple<std::string, std::string, std::string>> get_node_names_with_enclaves()
     const override;
   std::vector<std::pair<std::string, std::string>> get_node_names_and_namespaces() const override;
-  size_t count_publishers(const std::string & topic_name) const override;
-  size_t count_subscribers(const std::string & topic_name) const override;
   const rcl_guard_condition_t * get_graph_guard_condition() const override;
   void notify_graph_change() override;
   void notify_shutdown() override;
@@ -57,4 +68,5 @@ public:
 private:
   NodeBase::SharedPtr node_base_;
 };
-}  // namespace agnocast::node_interfaces
+}  // namespace node_interfaces
+}  // namespace agnocast
