@@ -3,15 +3,19 @@
 #include "agnocast_kunit/agnocast_kunit_add_process.h"
 #include "agnocast_kunit/agnocast_kunit_add_publisher.h"
 #include "agnocast_kunit/agnocast_kunit_add_subscriber.h"
+#include "agnocast_kunit/agnocast_kunit_bridge_shutdown.h"
+#include "agnocast_kunit/agnocast_kunit_check_and_request_bridge_shutdown.h"
 #include "agnocast_kunit/agnocast_kunit_do_exit.h"
 #include "agnocast_kunit/agnocast_kunit_get_node_publisher_topics.h"
 #include "agnocast_kunit/agnocast_kunit_get_node_subscriber_topics.h"
-#include "agnocast_kunit/agnocast_kunit_get_process_num.h"
 #include "agnocast_kunit/agnocast_kunit_get_publisher_num.h"
 #include "agnocast_kunit/agnocast_kunit_get_publisher_qos.h"
 #include "agnocast_kunit/agnocast_kunit_get_subscriber_num.h"
 #include "agnocast_kunit/agnocast_kunit_get_subscriber_qos.h"
+#include "agnocast_kunit/agnocast_kunit_get_topic_publisher_info.h"
+#include "agnocast_kunit/agnocast_kunit_get_topic_subscriber_info.h"
 #include "agnocast_kunit/agnocast_kunit_get_version.h"
+#include "agnocast_kunit/agnocast_kunit_init_memory_allocator.h"
 #include "agnocast_kunit/agnocast_kunit_publish_msg.h"
 #include "agnocast_kunit/agnocast_kunit_receive_msg.h"
 #include "agnocast_kunit/agnocast_kunit_release_sub_ref.h"
@@ -37,7 +41,8 @@ struct kunit_case agnocast_test_cases[] = {
   TEST_CASES_PUBLISH_MSG,
   TEST_CASES_TAKE_MSG,
   TEST_CASES_ADD_PROCESS,
-  TEST_CASES_GET_PROCESS_NUM,
+  TEST_CASES_BRIDGE_SHUTDOWN,
+  TEST_CASES_CHECK_AND_REQUEST_BRIDGE_SHUTDOWN,
   TEST_CASES_GET_SUBSCRIBER_NUM,
   TEST_CASES_GET_SUBSCRIBER_QOS,
   TEST_CASES_GET_PUBLISHER_NUM,
@@ -49,7 +54,10 @@ struct kunit_case agnocast_test_cases[] = {
   TEST_CASES_DO_EXIT,
   TEST_CASES_GET_NODE_SUBSCRIBER_TOPICS,
   TEST_CASES_GET_NODE_PUBLISHER_TOPICS,
+  TEST_CASES_GET_TOPIC_SUBSCRIBER_INFO,
+  TEST_CASES_GET_TOPIC_PUBLISHER_INFO,
   TEST_CASES_GET_VERSION,
+  TEST_CASES_INIT_MEMORY_ALLOCATOR,
   {},
 };
 
@@ -84,7 +92,13 @@ static int agnocast_test_suite_init(struct kunit_suite * test_suite)
     return ret;
   }
 
-  init_memory_allocator();
+  ret = init_memory_allocator();
+  if (ret < 0) {
+    agnocast_exit_exit_hook();
+    agnocast_exit_kthread();
+    agnocast_exit_device();
+    return ret;
+  }
 
   return 0;
 }
@@ -93,6 +107,7 @@ static void agnocast_test_suite_exit(struct kunit_suite * test_suite)
 {
   agnocast_exit_kthread();
   agnocast_exit_exit_hook();
+  cleanup_memory_allocator();
   agnocast_exit_device();
 }
 
