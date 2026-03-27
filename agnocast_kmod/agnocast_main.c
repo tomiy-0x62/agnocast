@@ -2070,9 +2070,6 @@ int agnocast_ioctl_remove_subscriber(
   kfree(sub_info->node_name);
   kfree(sub_info);
 
-  dev_info(
-    agnocast_device, "Subscriber (id=%d) removed from topic %s.\n", subscriber_id, topic_name);
-
   if (subscriber_id < 0 || subscriber_id >= MAX_TOPIC_LOCAL_ID) {
     dev_warn(
       agnocast_device,
@@ -2083,6 +2080,9 @@ int agnocast_ioctl_remove_subscriber(
   }
 
   clear_bit(subscriber_id, wrapper->topic.pubsub_id_map);
+
+  dev_info(
+    agnocast_device, "Subscriber (id=%d) removed from topic %s.\n", subscriber_id, topic_name);
 
   struct rb_root * root = &wrapper->topic.entries;
   struct rb_node * node = rb_first(root);
@@ -2160,8 +2160,6 @@ int agnocast_ioctl_remove_publisher(
     goto unlock;
   }
 
-  clear_bit(publisher_id, wrapper->topic.pubsub_id_map);
-
   // Publisher-side handles do not participate in reference counting, so we don't need
   // to remove publisher references. Just clean up entries that have no subscriber references.
   struct rb_root * root = &wrapper->topic.entries;
@@ -2185,6 +2183,8 @@ int agnocast_ioctl_remove_publisher(
     hash_del(&pub_info->node);
     kfree(pub_info->node_name);
     kfree(pub_info);
+
+    clear_bit(publisher_id, wrapper->topic.pubsub_id_map);
 
     dev_info(
       agnocast_device, "Publisher (id=%d) removed from topic %s.\n", publisher_id, topic_name);
