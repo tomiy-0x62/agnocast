@@ -3295,6 +3295,8 @@ static void pre_handler_subscriber_exit(
       continue;
     }
 
+  clear_bit(subscriber_id, wrapper->topic.pubsub_id_map);
+
     struct rb_root * root = &wrapper->topic.entries;
     struct rb_node * node = rb_first(root);
     while (node) {
@@ -3364,6 +3366,7 @@ static void pre_handler_publisher_exit(struct topic_wrapper * wrapper, const pid
       hash_del(&pub_info->node);
       kfree(pub_info->node_name);
       kfree(pub_info);
+      clear_bit(publisher_id, wrapper->topic.pubsub_id_map);
     }
   }
 }
