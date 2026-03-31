@@ -2184,6 +2184,15 @@ int agnocast_ioctl_remove_publisher(
     kfree(pub_info->node_name);
     kfree(pub_info);
 
+    if (publisher_id < 0 || publisher_id >= MAX_TOPIC_LOCAL_ID) {
+      dev_warn(
+        agnocast_device,
+        "publisher_id %d out of range [0, %d). (agnocast_ioctl_remove_publisher)\n", subscriber_id,
+        MAX_TOPIC_LOCAL_ID);
+      ret = -EINVAL;
+      goto unlock;
+    }
+
     clear_bit(publisher_id, wrapper->topic.pubsub_id_map);
 
     dev_info(
@@ -3366,6 +3375,14 @@ static void pre_handler_publisher_exit(struct topic_wrapper * wrapper, const pid
       hash_del(&pub_info->node);
       kfree(pub_info->node_name);
       kfree(pub_info);
+
+      if (publisher_id < 0 || publisher_id >= MAX_TOPIC_LOCAL_ID) {
+        dev_warn(
+          agnocast_device, "publisher_id %d out of range [0, %d). (pre_handler_publisher_exit)\n",
+          subscriber_id, MAX_TOPIC_LOCAL_ID);
+        continue;
+      }
+
       clear_bit(publisher_id, wrapper->topic.pubsub_id_map);
     }
   }
