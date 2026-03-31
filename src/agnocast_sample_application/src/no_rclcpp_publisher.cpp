@@ -44,6 +44,11 @@ int main(int argc, char ** argv)
   agnocast::AgnocastOnlySingleThreadedExecutor executor;
   auto node = std::make_shared<NoRclcppPublisher>();
   executor.add_node(node);
+  std::vector<std::string> node_names = node->get_node_graph_interface()->get_node_names();
+  RCLCPP_INFO(node->get_logger(), "get_node");
+  for (int i = 0; i < node_names.size(); i++) {
+    RCLCPP_INFO(node->get_logger(), "node_name[0]: %s", node_names[i].c_str());
+  }
   executor.spin();
   return 0;
 }

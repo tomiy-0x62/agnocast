@@ -759,26 +759,91 @@ int agnocast_ioctl_get_version(struct ioctl_get_version_args * ioctl_ret)
   return 0;
 }
 
+struct name_entry
+{
+  const char * name;
+  struct list_head list;
+};
+
+static int add_unique_name(const char * name, struct list_head * name_list, int * count)
+{
+  struct name_entry * ne;
+
+  if (!name) return 0;
+
+  list_for_each_entry(ne, name_list, list)
+  {
+    if (strcmp(ne->name, name) == 0) {
+      return 0;
+    }
+  }
+
+  ne = kmalloc(sizeof(*ne), GFP_KERNEL);
+  if (!ne) return -ENOMEM;
+
+  ne->name = name;
+
+  list_add_tail(&ne->list, name_list);
+  (*count)++;
+  return 0;
+}
+
 int agnocast_ioctl_get_node_names(struct ioctl_get_node_names_args * ioctl_ret)
 {
-  const char * dummy_data[] = {"hoge", "piyo"};
-  int num_nodes = 2;
-  int i;
-  char __user * current_user_ptr;
+  int ret = 0;
+  struct publisher_info * pub;
+  struct subscriber_info * sub;
+  struct name_entry *entry, *tmp_entry;
+  struct list_head name_list;
+  INIT_LIST_HEAD(&name_list);
+  int num_nodes = 0;
+  char __user * current_user_ptr = ioctl_ret->buffer;
+  down_read(&global_htables_rwsem);
+  struct topic_wrapper * wrapper;
+  int bkt;
+  hash_for_each(topic_hashtable, bkt, wrapper, node)
+  {
+    int bktp;
+    hash_for_each(wrapper->topic.pub_info_htable, bktp, pub, node)
+    {
+      int r = add_unique_name(pub->node_name, &name_list, &num_nodes);
+      if (r) {
+        ret = r;
+        goto cleanup;
+      }
+    }
+    int bkts;
+    hash_for_each(wrapper->topic.sub_info_htable, bkts, sub, node)
+    {
+      int r = add_unique_name(sub->node_name, &name_list, &num_nodes);
+      if (r) {
+        ret = r;
+        goto cleanup;
+      }
+    }
+  }
 
-  current_user_ptr = ioctl_ret->buffer;
+  list_for_each_entry(entry, &name_list, list)
+  {
+    size_t len = strlen(entry->name) + 1;
 
-  for (i = 0; i < num_nodes; i++) {
-    size_t len = strlen(dummy_data[i]) + 1;  // +1 for '\0'
-
-    if (copy_to_user(current_user_ptr, dummy_data[i], len)) return -EFAULT;
-
+    if (copy_to_user(current_user_ptr, entry->name, len)) {
+      ret = -EFAULT;
+      goto cleanup;
+    }
     current_user_ptr += len;
   }
 
   ioctl_ret->count = num_nodes;
 
-  return 0;
+cleanup:
+  list_for_each_entry_safe(entry, tmp_entry, &name_list, list)
+  {
+    list_del(&entry->list);
+    kfree(entry);
+  }
+  up_read(&global_htables_rwsem);
+  return ret;
 }
 
 int agnocast_ioctl_add_process(
