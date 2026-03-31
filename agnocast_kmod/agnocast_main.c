@@ -759,16 +759,14 @@ int agnocast_ioctl_get_version(struct ioctl_get_version_args * ioctl_ret)
   return 0;
 }
 
-int agnocast_ioctl_get_node_names(struct ioctl_get_node_names * ioctl_ret)
+int agnocast_ioctl_get_node_names(struct ioctl_get_node_names_args * ioctl_ret)
 {
   const char * dummy_data[] = {"hoge", "piyo"};
   int num_nodes = 2;
   int i;
   char __user * current_user_ptr;
 
-  if (copy_from_user(&k_args, ioctl_ret, sizeof(k_args))) return -EFAULT;
-
-  current_user_ptr = k_args.buffer;
+  current_user_ptr = ioctl_ret->buffer;
 
   for (i = 0; i < num_nodes; i++) {
     size_t len = strlen(dummy_data[i]) + 1;  // +1 for '\0'
@@ -778,8 +776,7 @@ int agnocast_ioctl_get_node_names(struct ioctl_get_node_names * ioctl_ret)
     current_user_ptr += len;
   }
 
-  k_args.count = num_nodes;
-  if (copy_to_user(ioctl_ret, &k_args, sizeof(k_args))) return -EFAULT;
+  ioctl_ret->count = num_nodes;
 
   return 0;
 }
@@ -2832,6 +2829,18 @@ static long agnocast_ioctl(struct file * file, unsigned int cmd, unsigned long a
     ret = agnocast_ioctl_set_ros2_publisher_num(
       topic_name_buf, ipc_ns, set_ros2_pub_args.ros2_publisher_num);
     kfree(topic_name_buf);
+  } else if (cmd == AGNOCAST_GET_NODE_NAMES_CMD) {
+    struct ioctl_get_node_names_args get_node_names_args;
+    if (copy_from_user(&get_node_names_args, (void __user *)arg, sizeof(get_node_names_args)))
+      return -EFAULT;
+    memset(get_node_names_args.buffer, 0, sizeof(get_node_names_args.buffer));
+    ret = agnocast_ioctl_get_node_names(&get_node_names_args);
+    if (ret == 0) {
+      if (copy_to_user(
+            (struct get_node_names_args __user *)arg, &get_node_names_args,
+            sizeof(get_node_names_args)))
+        return -EFAULT;
+    }
   } else {
     return -EINVAL;
   }

@@ -279,7 +279,7 @@ struct ioctl_set_ros2_publisher_num_args
 #define AGNOCAST_SET_ROS2_SUBSCRIBER_NUM_CMD \
   _IOW(0xA6, 25, struct ioctl_set_ros2_subscriber_num_args)
 #define AGNOCAST_SET_ROS2_PUBLISHER_NUM_CMD _IOW(0xA6, 26, struct ioctl_set_ros2_publisher_num_args)
-#define AGNOCAST_GET_NODE_NAMES_CMD _IOR(0xA6, 27, struct ioctl_get_node_names_args)
+#define AGNOCAST_GET_NODE_NAMES_CMD _IOWR(0xA6, 27, struct ioctl_get_node_names_args)
 
 // ================================================
 // ros2cli ioctls
