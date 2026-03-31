@@ -178,25 +178,25 @@ Each interface is accessible via getter methods such as `get_node_base_interface
 
 | Feature | agnocast::Node | Support Level | Planned | Notes |
 |---------|----------------|---------------|---------|-------|
-| `get_topic_names_and_types()` | ✗ | **Throws Exception** | ? | |
-| `get_service_names_and_types()` | ✗ | **Throws Exception** | ? | |
-| `get_service_names_and_types_by_node()` | ✗ | **Throws Exception** | ? | |
-| `get_client_names_and_types_by_node()` | ✗ | **Throws Exception** | ? | |
-| `get_publisher_names_and_types_by_node()` | ✗ | **Throws Exception** | ? | |
-| `get_subscriber_names_and_types_by_node()` | ✗ | **Throws Exception** | ? | |
-| `get_node_names()` | ✗ | **Throws Exception** | ? | |
-| `get_node_names_with_enclaves()` | ✗ | **Throws Exception** | ? | |
-| `get_node_names_and_namespaces()` | ✗ | **Throws Exception** | ? | |
-| `count_publishers()` | ✗ | **Throws Exception** | ? | |
-| `count_subscribers()` | ✗ | **Throws Exception** | ? | |
-| `get_graph_guard_condition()` | ✗ | **Throws Exception** | ? | |
-| `notify_graph_change()` | ✗ | **Throws Exception** | ? | |
-| `notify_shutdown()` | ✗ | **Throws Exception** | ? | |
-| `get_graph_event()` | ✗ | **Throws Exception** | ? | |
-| `wait_for_graph_change()` | ✗ | **Throws Exception** | ? | |
-| `count_graph_users()` | ✗ | **Throws Exception** | ? | |
-| `get_publishers_info_by_topic()` | ✗ | **Throws Exception** | ? | |
-| `get_subscriptions_info_by_topic()` | ✗ | **Throws Exception** | ? | |
+| `get_topic_names_and_types()` | ✗ | **Throws Exception** | No | To support this, topic_name and topic_type must be managed within the kmod; however, they are currently not managed |
+| `get_service_names_and_types()` | ✗ | **Throws Exception** | No | Agnocast does not officially support Service |
+| `get_service_names_and_types_by_node()` | ✗ | **Throws Exception** | No | Agnocast does not officially support Service |
+| `get_client_names_and_types_by_node()` | ✗ | **Throws Exception** | No | Agnocast does not officially support Service |
+| `get_publisher_names_and_types_by_node()` | ✗ | **Throws Exception** | No | To support this, topic_name and topic_type must be managed within the kmod; however, they are currently not managed |
+| `get_subscriber_names_and_types_by_node()` | ✗ | **Throws Exception** | No | To support this, topic_name and topic_type must be managed within the kmod; however, they are currently not managed |
+| `get_node_names()` | ✓ | **Full Support** | - | |
+| `get_node_names_with_enclaves()` | ✗ | **Throws Exception** | No | |
+| `get_node_names_and_namespaces()` | ✗ | **Throws Exception** | No | To support this, namespace must be managed within the kmod; however, they are currently not managed |
+| `count_publishers()` | ✓ | **Full Support** | - | |
+| `count_subscribers()` | ✓ | **Full Support** | - | |
+| `get_graph_guard_condition()` | ✗ | **Throws Exception** | No | |
+| `notify_graph_change()` | ✗ | **Throws Exception** | No | |
+| `notify_shutdown()` | ✗ | **Throws Exception** | No | |
+| `get_graph_event()` | ✗ | **Throws Exception** | No | |
+| `wait_for_graph_change()` | ✗ | **Throws Exception** | No | |
+| `count_graph_users()` | ✗ | **Throws Exception** | No | |
+| `get_publishers_info_by_topic()` | ✗ | **Throws Exception** | No | To support this, namespace and topic_type must be managed within the kmod; however, they are currently not managed |
+| `get_subscriptions_info_by_topic()` | ✗ | **Throws Exception** | No | To support this, namespace and topic_type must be managed within the kmod; however, they are currently not managed |
 
 ---
 
