@@ -3295,7 +3295,7 @@ static void pre_handler_subscriber_exit(
       continue;
     }
 
-  clear_bit(subscriber_id, wrapper->topic.pubsub_id_map);
+    clear_bit(subscriber_id, wrapper->topic.pubsub_id_map);
 
     struct rb_root * root = &wrapper->topic.entries;
     struct rb_node * node = rb_first(root);
