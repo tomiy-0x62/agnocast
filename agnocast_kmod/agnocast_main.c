@@ -2113,11 +2113,24 @@ int agnocast_ioctl_remove_subscriber(
 
     remove_entry_node(wrapper, en);
 
+    topic_local_id_t publisher_id = pub_info->id;
+
     pub_info->entries_num--;
     if (pub_info->entries_num == 0) {
       hash_del(&pub_info->node);
       kfree(pub_info->node_name);
       kfree(pub_info);
+
+      if (publisher_id < 0 || publisher_id >= MAX_TOPIC_LOCAL_ID) {
+        dev_warn(
+          agnocast_device,
+          "publisher_id %d out of range [0, %d). (agnocast_ioctl_remove_subscriber)\n",
+          publisher_id, MAX_TOPIC_LOCAL_ID);
+        ret = -EINVAL;
+        goto unlock;
+      }
+
+      clear_bit(publisher_id, wrapper->topic.pubsub_id_map);
     }
   }
 
