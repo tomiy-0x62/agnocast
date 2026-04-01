@@ -7,13 +7,16 @@
 #include "agnocast/bridge/standard/agnocast_standard_bridge_manager.hpp"
 
 #include <dlfcn.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 
 #include <algorithm>
 #include <atomic>
 #include <cstdint>
+#include <cstring>
 #include <mutex>
 #include <span>
+#include <vector>
 
 namespace agnocast
 {
@@ -144,11 +147,19 @@ void initialize_bridge_allocator(void * mempool_ptr, size_t mempool_size)
   }
 }
 
-initialize_agnocast_result acquire_agnocast_resources_for_bridge()
+initialize_agnocast_result acquire_agnocast_resources_for_bridge(BridgeMode bridge_mode)
 {
   union ioctl_add_process_args add_process_args = {};
+  add_process_args.is_performance_bridge_manager = (bridge_mode == BridgeMode::Performance);
   if (ioctl(agnocast_fd, AGNOCAST_ADD_PROCESS_CMD, &add_process_args) < 0) {
     throw std::runtime_error(std::string("AGNOCAST_ADD_PROCESS_CMD failed: ") + strerror(errno));
+  }
+
+  if (
+    bridge_mode == BridgeMode::Performance &&
+    add_process_args.ret_performance_bridge_daemon_exist) {
+    close(agnocast_fd);
+    exit(EXIT_SUCCESS);
   }
 
   void * mempool_ptr =
@@ -166,11 +177,7 @@ initialize_agnocast_result acquire_agnocast_resources_for_bridge()
 
 void poll_for_unlink()
 {
-  if (setsid() == -1) {
-    RCLCPP_ERROR(logger, "setsid failed for unlink daemon: %s", strerror(errno));
-    close(agnocast_fd);
-    exit(EXIT_FAILURE);
-  }
+  std::vector<exit_subscription_mq_info> mq_info_buf(MAX_SUBSCRIPTION_NUM_PER_PROCESS);
 
   while (true) {
     sleep(1);
@@ -178,6 +185,10 @@ void poll_for_unlink()
     struct ioctl_get_exit_process_args get_exit_process_args = {};
     do {
       get_exit_process_args = {};
+      get_exit_process_args.subscription_mq_info_buffer_addr =
+        reinterpret_cast<uint64_t>(mq_info_buf.data());
+      get_exit_process_args.subscription_mq_info_buffer_size =
+        static_cast<uint32_t>(mq_info_buf.size());
       if (ioctl(agnocast_fd, AGNOCAST_GET_EXIT_PROCESS_CMD, &get_exit_process_args) < 0) {
         RCLCPP_ERROR(logger, "AGNOCAST_GET_EXIT_PROCESS_CMD failed: %s", strerror(errno));
         close(agnocast_fd);
@@ -192,6 +203,15 @@ void poll_for_unlink()
         // all exited processes to avoid the complexity of checking the process type.
         const std::string mq_name = create_mq_name_for_bridge(get_exit_process_args.ret_pid);
         mq_unlink(mq_name.c_str());
+
+        // Unlink subscription MQs that the exited process owned
+        for (uint32_t i = 0; i < get_exit_process_args.ret_subscription_mq_info_num; i++) {
+          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
+          const std::string topic_name(mq_info_buf[i].topic_name);
+          const std::string sub_mq_name =
+            create_mq_name_for_agnocast_publish(topic_name, mq_info_buf[i].subscriber_id);
+          mq_unlink(sub_mq_name.c_str());
+        }
       }
     } while (get_exit_process_args.ret_pid > 0);
 
@@ -210,17 +230,10 @@ void poll_for_unlink()
 
 void poll_for_bridge_manager([[maybe_unused]] pid_t target_pid)
 {
-  if (setsid() == -1) {
-    RCLCPP_ERROR(logger, "setsid failed for unlink daemon: %s", strerror(errno));
-    close(agnocast_fd);
-    exit(EXIT_FAILURE);
-  }
-
   try {
-    const auto resources = acquire_agnocast_resources_for_bridge();
-    initialize_bridge_allocator(resources.mempool_ptr, resources.mempool_size);
-
     auto bridge_mode = get_bridge_mode();
+    const auto resources = acquire_agnocast_resources_for_bridge(bridge_mode);
+    initialize_bridge_allocator(resources.mempool_ptr, resources.mempool_size);
     if (bridge_mode == BridgeMode::Standard) {
       StandardBridgeManager manager(target_pid);
       manager.run();
@@ -364,24 +377,55 @@ bool is_version_consistent(
 template <typename Func>
 pid_t spawn_daemon_process(Func && func)
 {
-  pid_t pid = fork();
-  if (pid < 0) {
-    RCLCPP_ERROR(logger, "fork failed: %s", strerror(errno));
+  auto fail = [](const char * err_fmt) {
+    RCLCPP_ERROR(logger, err_fmt, strerror(errno));
     close(agnocast_fd);
     exit(EXIT_FAILURE);
+  };
+
+  pid_t pid = fork();
+  if (pid < 0) {
+    fail("fork failed: %s");
   }
   if (pid == 0) {
     agnocast::is_bridge_process = true;
     unsetenv("LD_PRELOAD");
 
-    // Redirect stdio to /dev/null so that CTest doesn't wait for inherited pipe
-    // file descriptors to close when the daemon runs in an infinite loop.
-    int devnull = open("/dev/null", O_RDWR);
-    if (devnull >= 0) {
-      dup2(devnull, STDIN_FILENO);
-      dup2(devnull, STDOUT_FILENO);
-      dup2(devnull, STDERR_FILENO);
+    // Redirect stdio to /dev/null when stdout or stderr is an inherited pipe or socket. In that
+    // case, a process may be reading from the pipe and waiting on it to close, which can cause
+    // the process to hang because the daemon never closes it. Redirecting to /dev/null works around
+    // this issue.
+    struct stat st_out = {};
+    struct stat st_err = {};
+    if (fstat(STDOUT_FILENO, &st_out) < 0) {
+      fail("fstat for stdout failed: %s");
+    }
+    if (fstat(STDERR_FILENO, &st_err) < 0) {
+      fail("fstat for stderr failed: %s");
+    }
+
+    if (
+      S_ISFIFO(st_out.st_mode) || S_ISFIFO(st_err.st_mode) || S_ISSOCK(st_out.st_mode) ||
+      S_ISSOCK(st_err.st_mode)) {
+      int devnull = open("/dev/null", O_RDWR);
+      if (devnull < 0) {
+        fail("Failed to open /dev/null: %s");
+      }
+
+      if (dup2(devnull, STDIN_FILENO) < 0) {
+        fail("dup2 for stdin failed: %s");
+      }
+      if (dup2(devnull, STDOUT_FILENO) < 0) {
+        fail("dup2 for stdout failed: %s");
+      }
+      if (dup2(devnull, STDERR_FILENO) < 0) {
+        fail("dup2 for stderr failed: %s");
+      }
       close(devnull);
+    }
+
+    if (setsid() == -1) {
+      fail("setsid failed: %s");
     }
 
     func();
@@ -436,12 +480,11 @@ struct initialize_agnocast_result initialize_agnocast(
   // Create a shm_unlink daemon process if it doesn't exist in its ipc namespace.
   if (!add_process_args.ret_unlink_daemon_exist) {
     spawn_daemon_process([]() { poll_for_unlink(); });
-
-    // Since the performance bridge daemon is created once per IPC namespace,
-    // this logic is placed inside this block.
-    if (bridge_mode == BridgeMode::Performance) {
-      should_spawn_bridge = true;
-    }
+  }
+  if (
+    bridge_mode == BridgeMode::Performance &&
+    !add_process_args.ret_performance_bridge_daemon_exist) {
+    should_spawn_bridge = true;
   }
   if (bridge_mode == BridgeMode::Standard) {
     target_pid = getpid();
