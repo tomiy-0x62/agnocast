@@ -35,8 +35,6 @@ void test_case_get_node_names(struct kunit * test)
   char buffer[512];
   get_node_names_args.buffer = buffer;
   get_node_names_args.count = 0;
-  ret =
-    agnocast_ioctl_get_node_names(&get_node_names_args);
+  ret = agnocast_ioctl_get_node_names(&get_node_names_args);
   KUNIT_EXPECT_TRUE(test, ret == -EFAULT || (ret == 0 && get_node_names_args.count == 1));
 }
-
