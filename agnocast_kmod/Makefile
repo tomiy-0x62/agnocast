@@ -33,6 +33,7 @@ else
 	  agnocast_kunit/agnocast_kunit_check_and_request_bridge_shutdown.o \
 	  agnocast_kunit/agnocast_kunit_get_topic_subscriber_info.o \
 	  agnocast_kunit/agnocast_kunit_get_topic_publisher_info.o \
+	  agnocast_kunit/agnocast_kunit_get_node_names.o \
 	  agnocast_kunit/agnocast_kunit_init_memory_allocator.o
 	ccflags-y += -DKUNIT_BUILD -fprofile-arcs -ftest-coverage
   else
