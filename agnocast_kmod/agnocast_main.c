@@ -2113,10 +2113,10 @@ int agnocast_ioctl_remove_subscriber(
 
     remove_entry_node(wrapper, en);
 
-    topic_local_id_t publisher_id = pub_info->id;
-
     pub_info->entries_num--;
     if (pub_info->entries_num == 0) {
+      topic_local_id_t publisher_id = pub_info->id;
+
       hash_del(&pub_info->node);
       kfree(pub_info->node_name);
       kfree(pub_info);
