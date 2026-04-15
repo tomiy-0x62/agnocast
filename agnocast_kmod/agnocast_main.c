@@ -3349,9 +3349,20 @@ static void pre_handler_subscriber_exit(
 
       pub_info->entries_num--;
       if (pub_info->entries_num == 0) {
+        topic_local_id_t publisher_id = pub_info->id;
+
         hash_del(&pub_info->node);
         kfree(pub_info->node_name);
         kfree(pub_info);
+
+        if (publisher_id < 0 || publisher_id >= MAX_TOPIC_LOCAL_ID) {
+          dev_warn(
+            agnocast_device,
+            "publisher_id %d out of range [0, %d). (pre_handler_subscriber_exit)\n", publisher_id,
+            MAX_TOPIC_LOCAL_ID);
+        }
+
+        clear_bit(publisher_id, wrapper->topic.pubsub_id_map);
       }
     }
   }
