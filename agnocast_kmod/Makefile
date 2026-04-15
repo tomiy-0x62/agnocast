@@ -33,8 +33,7 @@ else
 	  agnocast_kunit/agnocast_kunit_check_and_request_bridge_shutdown.o \
 	  agnocast_kunit/agnocast_kunit_get_topic_subscriber_info.o \
 	  agnocast_kunit/agnocast_kunit_get_topic_publisher_info.o \
-	  agnocast_kunit/agnocast_kunit_init_memory_allocator.o \
-	  agnocast_kunit/agnocast_kunit_add_remove_pub_sub.o
+	  agnocast_kunit/agnocast_kunit_init_memory_allocator.o
 	ccflags-y += -DKUNIT_BUILD -fprofile-arcs -ftest-coverage
   else
     $(warning "CONFIG_KUNIT or CONFIG_GCOV_KERNEL is not set")

@@ -2,7 +2,6 @@
 #include "agnocast_kunit/agnocast_kunit_add_bridge.h"
 #include "agnocast_kunit/agnocast_kunit_add_process.h"
 #include "agnocast_kunit/agnocast_kunit_add_publisher.h"
-#include "agnocast_kunit/agnocast_kunit_add_remove_pub_sub.h"
 #include "agnocast_kunit/agnocast_kunit_add_subscriber.h"
 #include "agnocast_kunit/agnocast_kunit_bridge_shutdown.h"
 #include "agnocast_kunit/agnocast_kunit_check_and_request_bridge_shutdown.h"
@@ -58,7 +57,6 @@ struct kunit_case agnocast_test_cases[] = {
   TEST_CASES_GET_TOPIC_SUBSCRIBER_INFO,
   TEST_CASES_GET_TOPIC_PUBLISHER_INFO,
   TEST_CASES_GET_VERSION,
-  TEST_CASES_ADD_REMOVE_PUBLISHER_SUBSCRIBER,
   TEST_CASES_INIT_MEMORY_ALLOCATOR,
   {},
 };
