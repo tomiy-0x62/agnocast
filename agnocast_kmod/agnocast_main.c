@@ -2200,7 +2200,7 @@ int agnocast_ioctl_remove_publisher(
     if (publisher_id < 0 || publisher_id >= MAX_TOPIC_LOCAL_ID) {
       dev_warn(
         agnocast_device,
-        "publisher_id %d out of range [0, %d). (agnocast_ioctl_remove_publisher)\n", subscriber_id,
+        "publisher_id %d out of range [0, %d). (agnocast_ioctl_remove_publisher)\n", publisher_id,
         MAX_TOPIC_LOCAL_ID);
       ret = -EINVAL;
       goto unlock;
@@ -3392,7 +3392,7 @@ static void pre_handler_publisher_exit(struct topic_wrapper * wrapper, const pid
       if (publisher_id < 0 || publisher_id >= MAX_TOPIC_LOCAL_ID) {
         dev_warn(
           agnocast_device, "publisher_id %d out of range [0, %d). (pre_handler_publisher_exit)\n",
-          subscriber_id, MAX_TOPIC_LOCAL_ID);
+          publisher_id, MAX_TOPIC_LOCAL_ID);
         continue;
       }
 
